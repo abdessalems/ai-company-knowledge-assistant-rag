@@ -1,0 +1,6 @@
+@AIKnowledgeAssistant.API_HostAddress = http://localhost:5226
+
+GET {{AIKnowledgeAssistant.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

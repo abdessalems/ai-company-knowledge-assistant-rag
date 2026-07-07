@@ -1,2 +1,7 @@
 <Solution>
+  <Project Path="AIKnowledgeAssistant.API/AIKnowledgeAssistant.API.csproj" />
+  <Project Path="AIKnowledgeAssistant.Application/AIKnowledgeAssistant.Application.csproj" />
+  <Project Path="AIKnowledgeAssistant.Domain/AIKnowledgeAssistant.Domain.csproj" />
+  <Project Path="AIKnowledgeAssistant.Infrastructure/AIKnowledgeAssistant.Infrastructure.csproj" />
+  <Project Path="AIKnowledgeAssistant.Tests/AIKnowledgeAssistant.Tests.csproj" />
 </Solution>
