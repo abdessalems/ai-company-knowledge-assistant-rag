@@ -1,6 +1,7 @@
 namespace AIKnowledgeAssistant.Infrastructure.Extensions;
 
 using AIKnowledgeAssistant.Application.Interfaces;
+using AIKnowledgeAssistant.Infrastructure.Authentication;
 using AIKnowledgeAssistant.Infrastructure.Database;
 using AIKnowledgeAssistant.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -79,8 +80,6 @@ public static class InfrastructureExtensions
                 connectionString,
                 npgsqlOptions => npgsqlOptions
                     .MigrationsHistoryTable("__EFMigrationsHistory", "public")
-                    // pgvector extension: enables vector operations
-                    .UseNetTopologySuite()
             )
             // Track changes by default (needed for SaveChangesAsync)
             .UseQueryTrackingBehavior(QueryTrackingBehavior.TrackAll);
@@ -135,6 +134,39 @@ public static class InfrastructureExtensions
         /// After Request 1: Instance A is disposed
         /// After Request 2: Instance B is disposed
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        // ====================================
+        // AUTHENTICATION SERVICES
+        // ====================================
+
+        /// Register authentication services
+        /// 
+        /// SERVICES REGISTERED:
+        /// 1. JwtSettings: Configuration
+        /// 2. IPasswordHasher: Bcrypt hashing
+        /// 3. IJwtTokenGenerator: JWT token creation
+        /// 4. IAuthenticationService: Auth logic
+        /// 
+        /// LIFETIMES:
+        /// - JwtSettings: Singleton (immutable configuration)
+        /// - Services: Scoped (use DbContext per request)
+        
+        // Load JWT settings from configuration
+        // Would normally come from appsettings.json
+        // For now: Hardcoded, will be replaced with config
+        var jwtSettings = new JwtSettings
+        {
+            SecretKey = "your-super-secret-key-must-be-at-least-32-characters-long",
+            Issuer = "https://ai-knowledge-assistant.company.com",
+            Audience = "ai-knowledge-assistant-api",
+            AccessTokenExpirationMinutes = 15,
+            RefreshTokenExpirationDays = 7
+        };
+
+        services.AddSingleton(jwtSettings);
+        services.AddScoped<IPasswordHasher, PasswordHasher>();
+        services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+        services.AddScoped<IAuthenticationService, AuthenticationService>();
 
         return services;
     }

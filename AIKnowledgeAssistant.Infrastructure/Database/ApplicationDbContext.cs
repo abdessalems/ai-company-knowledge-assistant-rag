@@ -205,8 +205,7 @@ public class ApplicationDbContext : DbContext
             // Unique constraint on Email
             entity.HasIndex(e => e.Email)
                 .IsUnique()
-                .HasDatabaseName("IX_Users_Email_Unique")
-                .HasComment("Ensure each email is unique (no duplicate accounts)");
+                .HasDatabaseName("IX_Users_Email_Unique");
 
             // ====================================
             // USER RELATIONSHIPS
@@ -310,27 +309,25 @@ public class ApplicationDbContext : DbContext
                 .HasComment("Sequential index of chunk within document");
 
             // ====================================
-            // pgvector CONFIGURATION - CRITICAL FOR RAG
+            // VECTOR EMBEDDING CONFIGURATION
             // ====================================
             // 
-            // pgvector stores vector embeddings in PostgreSQL
             // VectorEmbedding is a float[] representing 1536 dimensions
+            // For now, stored as JSON array in PostgreSQL
             // 
-            // PostgreSQL will create a VECTOR type column:
-            // Column: VectorEmbedding, Type: vector(1536)
-            // 
+            // FUTURE: When pgvector NuGet is available:
+            // .HasColumnType("vector(1536)")
             // This enables similarity search:
             // SELECT * FROM DocumentChunks
             // ORDER BY VectorEmbedding <-> @questionEmbedding
             // LIMIT 5;
             // 
-            // The <-> operator calculates cosine distance:
-            // Returns closest/most similar chunks
-            // This is the POWER of RAG!
-
+            // CURRENT: Using jsonb column type
+            // Full similarity search will be implemented with proper pgvector
+            
             entity.Property(e => e.VectorEmbedding)
-                .HasColumnType("vector(1536)") // 1536 dimensions (OpenAI standard)
-                .HasComment("Vector embedding for semantic similarity search");
+                .HasColumnType("jsonb") // Store as JSON array for now
+                .HasComment("Vector embedding for semantic similarity search (JSON array format)");
 
             entity.Property(e => e.CreatedAt)
                 .IsRequired()
@@ -344,15 +341,10 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => e.DocumentId)
                 .HasDatabaseName("IX_DocumentChunks_DocumentId");
 
-            // ⭐ CREATE VECTOR INDEX FOR FAST SIMILARITY SEARCH
-            // This speeds up the "find similar chunks" queries
-            // Using IVFFlat algorithm: Inverted File with Flat Quantization
-            // Trade-off: faster searches, slightly less accurate (configurable)
+            // JSON index for efficient searching
             entity.HasIndex(e => e.VectorEmbedding)
-                .HasMethod("ivfflat")
-                .WithOperators("vector_cosine_ops")
-                .HasDatabaseName("IX_DocumentChunks_VectorEmbedding")
-                .HasComment("IVFFlat index for fast vector similarity search");
+                .HasMethod("gin")
+                .HasDatabaseName("IX_DocumentChunks_VectorEmbedding");
         });
 
         // ====================================
@@ -485,12 +477,10 @@ public class ApplicationDbContext : DbContext
                 .HasDatabaseName("IX_RefreshTokens_UserId");
 
             entity.HasIndex(e => new { e.Token, e.RevokedAt })
-                .HasDatabaseName("IX_RefreshTokens_Token_RevokedAt")
-                .HasComment("Fast lookup: is this token valid and not revoked?");
+                .HasDatabaseName("IX_RefreshTokens_Token_RevokedAt");
 
             entity.HasIndex(e => e.ExpirationDate)
-                .HasDatabaseName("IX_RefreshTokens_ExpirationDate")
-                .HasComment("For cleanup: delete expired tokens");
+                .HasDatabaseName("IX_RefreshTokens_ExpirationDate");
         });
     }
 }
