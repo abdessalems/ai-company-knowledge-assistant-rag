@@ -6,4 +6,16 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <!-- Application depends on Domain -->
+  <ItemGroup>
+    <ProjectReference Include="..\AIKnowledgeAssistant.Domain\AIKnowledgeAssistant.Domain.csproj" />
+  </ItemGroup>
+
+  <!-- Core application packages -->
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="11.10.0" />
+    <PackageReference Include="AutoMapper" Version="13.0.1" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+  </ItemGroup>
+
 </Project>

@@ -6,4 +6,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <!-- Domain layer has NO dependencies - pure business logic -->
+
 </Project>
