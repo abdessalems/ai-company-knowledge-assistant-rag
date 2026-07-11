@@ -28,3 +28,25 @@ public class DocumentDto
     /// <summary>When the document was uploaded (UTC).</summary>
     public DateTime UploadedAt { get; set; }
 }
+
+/// <summary>
+/// A single processed chunk of a document. Used to inspect the result of the
+/// extract + chunk pipeline (and later, whether it has an embedding yet).
+/// </summary>
+public class DocumentChunkDto
+{
+    /// <summary>Unique id of the chunk.</summary>
+    public Guid Id { get; set; }
+
+    /// <summary>Page number this chunk came from (for citations).</summary>
+    public int PageNumber { get; set; }
+
+    /// <summary>Sequential index of this chunk within the document.</summary>
+    public int ChunkIndex { get; set; }
+
+    /// <summary>The chunk's text content.</summary>
+    public string Content { get; set; } = string.Empty;
+
+    /// <summary>Whether a vector embedding has been generated yet (Step 7).</summary>
+    public bool HasEmbedding { get; set; }
+}

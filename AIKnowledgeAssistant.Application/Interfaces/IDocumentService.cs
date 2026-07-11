@@ -54,4 +54,13 @@ public interface IDocumentService
         Guid userId,
         Guid documentId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Get the processed text chunks of a document (only if the user owns it).
+    /// Lets us verify the extract + chunk pipeline worked.
+    /// </summary>
+    Task<IEnumerable<DocumentChunkDto>> GetChunksAsync(
+        Guid userId,
+        Guid documentId,
+        CancellationToken cancellationToken = default);
 }

@@ -47,4 +47,14 @@ public interface IFileStorageService
     Task DeleteAsync(
         string storedPath,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Open a previously stored file for reading (e.g. to extract its text).
+    /// The caller owns the returned stream and must dispose it.
+    /// </summary>
+    /// <param name="storedPath">The path/key returned earlier by SaveAsync.</param>
+    /// <param name="cancellationToken">Allows the request to be cancelled.</param>
+    Task<Stream> OpenReadAsync(
+        string storedPath,
+        CancellationToken cancellationToken = default);
 }

@@ -84,6 +84,18 @@ public class DocumentsController : ControllerBase
         return Ok(document);
     }
 
+    /// <summary>
+    /// Get the processed text chunks of a document (only if owned).
+    /// Useful to inspect the result of PDF extraction + chunking.
+    /// </summary>
+    [HttpGet("{id:guid}/chunks")]
+    public async Task<ActionResult<IEnumerable<DocumentChunkDto>>> GetChunks(Guid id, CancellationToken cancellationToken)
+    {
+        var userId = GetUserId();
+        var chunks = await _documentService.GetChunksAsync(userId, id, cancellationToken);
+        return Ok(chunks);
+    }
+
     /// <summary>Delete a document (only if the current user owns it).</summary>
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)

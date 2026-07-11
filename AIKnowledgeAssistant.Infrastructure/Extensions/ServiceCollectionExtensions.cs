@@ -5,6 +5,7 @@ using AIKnowledgeAssistant.Infrastructure.Authentication;
 using AIKnowledgeAssistant.Infrastructure.Database;
 using AIKnowledgeAssistant.Infrastructure.Repositories;
 using AIKnowledgeAssistant.Infrastructure.Storage;
+using AIKnowledgeAssistant.Infrastructure.TextExtraction;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -178,6 +179,15 @@ public static class InfrastructureExtensions
         // Swapping to Azure Blob / S3 later = change this ONE line.
         services.AddSingleton<IFileStorageService>(
             new LocalFileStorageService(fileStorageBasePath));
+
+        // ====================================
+        // TEXT EXTRACTORS (strategy per file type)
+        // ====================================
+        // Both are registered under ITextExtractor, so the extraction facade
+        // receives ALL of them (IEnumerable<ITextExtractor>) and picks the one
+        // that CanHandle the uploaded file's type. Add a type = add a class here.
+        services.AddSingleton<ITextExtractor, PdfTextExtractor>();
+        services.AddSingleton<ITextExtractor, PlainTextExtractor>();
 
         return services;
     }

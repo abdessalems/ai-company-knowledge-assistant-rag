@@ -58,6 +58,12 @@ public static class ApplicationExtensions
         // UnitOfWork/DbContext so all its DB work is one transaction.
         services.AddScoped<IDocumentService, DocumentService>();
 
+        // Text processing pipeline (stateless → Singleton):
+        // - the extraction facade picks the right ITextExtractor
+        // - the chunker splits extracted pages into overlapping chunks
+        services.AddSingleton<ITextExtractionService, TextExtractionService>();
+        services.AddSingleton<ITextChunker, SlidingWindowTextChunker>();
+
         return services;
     }
 }

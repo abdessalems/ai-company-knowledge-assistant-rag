@@ -86,4 +86,20 @@ public class LocalFileStorageService : IFileStorageService
         // to satisfy the interface (a cloud implementation WOULD be async).
         return Task.CompletedTask;
     }
+
+    /// <inheritdoc />
+    public Task<Stream> OpenReadAsync(
+        string storedPath,
+        CancellationToken cancellationToken = default)
+    {
+        if (!File.Exists(storedPath))
+            throw new FileNotFoundException("Stored file not found.", storedPath);
+
+        // FileShare.Read lets other readers open it concurrently; the caller
+        // is responsible for disposing this stream.
+        Stream stream = new FileStream(
+            storedPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+
+        return Task.FromResult(stream);
+    }
 }
