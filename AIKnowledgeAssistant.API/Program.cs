@@ -73,6 +73,18 @@ builder.Services
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
 
+// CORS: allow the Angular dev app (http://localhost:4200) to call this API.
+// Browsers block cross-origin calls unless the server opts in like this.
+const string FrontendCorsPolicy = "AllowFrontend";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(FrontendCorsPolicy, policy =>
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials());
+});
+
 // ====================================
 // BUILD AND CONFIGURE PIPELINE
 // ====================================
@@ -93,8 +105,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+else
+{
+    // Force HTTPS only outside local dev (avoids self-signed cert / CORS
+    // friction when the Angular app calls the API over plain http locally).
+    app.UseHttpsRedirection();
+}
 
-app.UseHttpsRedirection();
+// CORS must run before authentication so preflight (OPTIONS) requests succeed.
+app.UseCors(FrontendCorsPolicy);
 
 // ====================================
 // AUTHENTICATION & AUTHORIZATION MIDDLEWARE

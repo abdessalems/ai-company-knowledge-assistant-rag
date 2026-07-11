@@ -1,0 +1,101 @@
+/* =====================================================================
+   GLOBAL THEME
+   ---------------------------------------------------------------------
+   All colours live here as CSS variables. To re-skin the whole app
+   (e.g. from a template you like), just change these values — every
+   component reads from them, so nothing else needs to be touched.
+   ===================================================================== */
+
+:root {
+  /* Core palette (dark, chatbot-ui inspired) */
+  --bg:           #0f1117;   /* app background            */
+  --sidebar:      #171923;   /* left sidebar              */
+  --surface:      #1e2130;   /* cards, inputs, bubbles    */
+  --surface-2:    #262a3b;   /* hover / elevated          */
+  --border:       #2d3244;   /* hairlines                 */
+
+  --text:         #e8eaf0;   /* primary text              */
+  --text-muted:   #9aa0b4;   /* secondary text            */
+
+  --accent:       #10a37f;   /* primary action (buttons)  */
+  --accent-hover: #0e8f6f;
+  --accent-text:  #ffffff;
+
+  --danger:       #e5484d;   /* delete / errors           */
+  --chip:         #262a3b;   /* citation chips            */
+
+  --radius:       10px;
+  --radius-sm:    7px;
+  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--accent); text-decoration: none; }
+
+/* ---- Reusable building blocks (used across components) ---- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  padding: .6rem 1rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--accent-text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s ease;
+}
+.btn:hover:not(:disabled) { background: var(--accent-hover); }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover:not(:disabled) { background: var(--surface-2); color: var(--text); }
+
+.btn-danger { background: var(--danger); }
+.btn-danger:hover:not(:disabled) { filter: brightness(1.1); }
+
+.input {
+  width: 100%;
+  padding: .65rem .8rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font: inherit;
+}
+.input:focus { outline: none; border-color: var(--accent); }
+
+.label { display: block; margin-bottom: .35rem; color: var(--text-muted); font-size: .85rem; }
+.field { margin-bottom: 1rem; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+}
+
+.error-text { color: var(--danger); font-size: .85rem; margin-top: .4rem; }
+.muted { color: var(--text-muted); }
