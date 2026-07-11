@@ -64,6 +64,10 @@ public static class ApplicationExtensions
         services.AddSingleton<ITextExtractionService, TextExtractionService>();
         services.AddSingleton<ITextChunker, SlidingWindowTextChunker>();
 
+        // RAG pipeline services (Scoped: use the request's UnitOfWork/DbContext)
+        services.AddScoped<IRetrievalService, RetrievalService>();
+        services.AddScoped<IChatService, ChatService>();
+
         return services;
     }
 }

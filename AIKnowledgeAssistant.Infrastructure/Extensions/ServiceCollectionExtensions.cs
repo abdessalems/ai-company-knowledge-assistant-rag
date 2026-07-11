@@ -203,6 +203,17 @@ public static class InfrastructureExtensions
             client.Timeout = TimeSpan.FromMinutes(5);
         });
 
+        // ====================================
+        // AI: CHAT LLM (Ollama, local & free)
+        // ====================================
+        // Longer timeout: generating an answer on CPU can take a while.
+        services.AddHttpClient<ILlmService, OllamaChatService>((provider, client) =>
+        {
+            var settings = provider.GetRequiredService<OllamaSettings>();
+            client.BaseAddress = new Uri(settings.BaseUrl);
+            client.Timeout = TimeSpan.FromMinutes(10);
+        });
+
         return services;
     }
 }

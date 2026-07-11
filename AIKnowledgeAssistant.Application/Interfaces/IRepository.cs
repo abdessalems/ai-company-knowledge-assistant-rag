@@ -409,6 +409,14 @@ public interface IDocumentChunkRepository : IRepository<DocumentChunk>
     Task<IEnumerable<DocumentChunk>> GetChunksWithEmbeddingsAsync();
 
     /// <summary>
+    /// Get all embedded chunks that belong to a specific user's documents,
+    /// with each chunk's parent Document loaded (for citation names).
+    /// This is the candidate set for semantic search, scoped for security so a
+    /// user can only ever search their own documents.
+    /// </summary>
+    Task<IReadOnlyList<DocumentChunk>> GetEmbeddedChunksForUserAsync(Guid userId);
+
+    /// <summary>
     /// Vector similarity search (THE RAG MAGIC).
     /// 
     /// WHAT DOES THIS DO?

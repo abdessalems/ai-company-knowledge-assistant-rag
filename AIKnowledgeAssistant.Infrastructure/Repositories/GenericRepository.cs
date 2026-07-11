@@ -448,6 +448,20 @@ public class DocumentChunkRepository : GenericRepository<DocumentChunk>, IDocume
     }
 
     /// <summary>
+    /// Candidate set for semantic search: every embedded chunk that belongs to
+    /// THIS user's documents, with the parent Document loaded for citations.
+    /// AsNoTracking because retrieval is read-only.
+    /// </summary>
+    public async Task<IReadOnlyList<DocumentChunk>> GetEmbeddedChunksForUserAsync(Guid userId)
+    {
+        return await _context.DocumentChunks
+            .AsNoTracking()
+            .Include(c => c.Document)
+            .Where(c => c.Document!.UserId == userId && c.VectorEmbedding != null)
+            .ToListAsync();
+    }
+
+    /// <summary>
     /// VECTOR SIMILARITY SEARCH - THE RAG MAGIC!
     /// 
     /// WHAT THIS DOES:
