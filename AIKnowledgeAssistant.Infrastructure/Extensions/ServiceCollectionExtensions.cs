@@ -1,6 +1,7 @@
 namespace AIKnowledgeAssistant.Infrastructure.Extensions;
 
 using AIKnowledgeAssistant.Application.Interfaces;
+using AIKnowledgeAssistant.Infrastructure.AI;
 using AIKnowledgeAssistant.Infrastructure.Authentication;
 using AIKnowledgeAssistant.Infrastructure.Database;
 using AIKnowledgeAssistant.Infrastructure.Repositories;
@@ -188,6 +189,19 @@ public static class InfrastructureExtensions
         // that CanHandle the uploaded file's type. Add a type = add a class here.
         services.AddSingleton<ITextExtractor, PdfTextExtractor>();
         services.AddSingleton<ITextExtractor, PlainTextExtractor>();
+
+        // ====================================
+        // AI: EMBEDDINGS (Ollama, local & free)
+        // ====================================
+        // Typed HttpClient: the DI container creates and manages an HttpClient
+        // for OllamaEmbeddingService. BaseAddress comes from OllamaSettings.
+        // The long timeout covers embedding a whole document's chunks at once.
+        services.AddHttpClient<IEmbeddingService, OllamaEmbeddingService>((provider, client) =>
+        {
+            var settings = provider.GetRequiredService<OllamaSettings>();
+            client.BaseAddress = new Uri(settings.BaseUrl);
+            client.Timeout = TimeSpan.FromMinutes(5);
+        });
 
         return services;
     }

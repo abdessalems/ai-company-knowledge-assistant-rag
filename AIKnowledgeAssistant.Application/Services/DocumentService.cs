@@ -22,6 +22,7 @@ public class DocumentService : IDocumentService
     private readonly IFileStorageService _fileStorage;
     private readonly ITextExtractionService _textExtraction;
     private readonly ITextChunker _textChunker;
+    private readonly IEmbeddingService _embeddingService;
 
     /// <summary>
     /// Maps a file extension to our supported FileType enum.
@@ -41,12 +42,14 @@ public class DocumentService : IDocumentService
         IUnitOfWork unitOfWork,
         IFileStorageService fileStorage,
         ITextExtractionService textExtraction,
-        ITextChunker textChunker)
+        ITextChunker textChunker,
+        IEmbeddingService embeddingService)
     {
         _unitOfWork = unitOfWork;
         _fileStorage = fileStorage;
         _textExtraction = textExtraction;
         _textChunker = textChunker;
+        _embeddingService = embeddingService;
     }
 
     /// <inheritdoc />
@@ -97,14 +100,18 @@ public class DocumentService : IDocumentService
                     throw new InvalidBusinessRuleException(
                         "No readable text was found in the document (it may be a scanned image).");
 
+                // ---- Generate an embedding for every chunk (one batched call) ----
+                var contents = textChunks.Select(c => c.Content).ToList();
+                var embeddings = await _embeddingService.GenerateAsync(contents, cancellationToken);
+
                 chunks = textChunks
-                    .Select(c => new DocumentChunk
+                    .Select((c, i) => new DocumentChunk
                     {
                         Id = Guid.NewGuid(),
                         Content = c.Content,
                         PageNumber = c.PageNumber,
                         ChunkIndex = c.ChunkIndex,
-                        VectorEmbedding = null, // filled in Step 7 (embeddings)
+                        VectorEmbedding = embeddings[i], // semantic vector for search
                         CreatedAt = DateTime.UtcNow,
                     })
                     .ToList();

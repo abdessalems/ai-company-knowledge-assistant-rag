@@ -21,6 +21,11 @@ var fileStorageBasePath = builder.Configuration["FileStorage:BasePath"];
 if (string.IsNullOrWhiteSpace(fileStorageBasePath))
     fileStorageBasePath = Path.Combine(builder.Environment.ContentRootPath, "uploads");
 
+// Ollama (local AI) settings, from the "Ollama" config section (with defaults).
+var ollamaSettings = new AIKnowledgeAssistant.Infrastructure.AI.OllamaSettings();
+builder.Configuration.GetSection("Ollama").Bind(ollamaSettings);
+builder.Services.AddSingleton(ollamaSettings);
+
 // Register Application layer services (Validators, services)
 builder.Services.AddApplication();
 

@@ -1,7 +1,10 @@
 namespace AIKnowledgeAssistant.Infrastructure.Database;
 
+using System.Text.Json;
 using AIKnowledgeAssistant.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 /// <summary>
 /// Main database context for the AI Knowledge Assistant application.
@@ -158,6 +161,24 @@ public class ApplicationDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // ====================================
+        // VECTOR EMBEDDING CONVERSION
+        // ====================================
+        // The embedding is a float[] in C#, but the column is jsonb in Postgres.
+        // A ValueConverter tells EF how to translate between the two:
+        //   - saving:  float[]  -> JSON string (stored in the jsonb column)
+        //   - loading: JSON     -> float[]
+        var embeddingConverter = new ValueConverter<float[]?, string?>(
+            v => v == null ? null : JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+            v => v == null ? null : JsonSerializer.Deserialize<float[]>(v, (JsonSerializerOptions?)null));
+
+        // A ValueComparer teaches EF how to compare/clone arrays so it can detect
+        // changes correctly (arrays are reference types, so it can't just use ==).
+        var embeddingComparer = new ValueComparer<float[]?>(
+            (a, b) => (a == null && b == null) || (a != null && b != null && a.SequenceEqual(b)),
+            v => v == null ? 0 : v.Aggregate(0, (hash, f) => HashCode.Combine(hash, f.GetHashCode())),
+            v => v == null ? null : v.ToArray());
 
         // ====================================
         // USER CONFIGURATION
@@ -327,6 +348,7 @@ public class ApplicationDbContext : DbContext
             
             entity.Property(e => e.VectorEmbedding)
                 .HasColumnType("jsonb") // Store as JSON array for now
+                .HasConversion(embeddingConverter, embeddingComparer)
                 .HasComment("Vector embedding for semantic similarity search (JSON array format)");
 
             entity.Property(e => e.CreatedAt)
