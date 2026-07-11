@@ -194,7 +194,7 @@ public class ApplicationDbContext : DbContext
 
             entity.Property(e => e.Role)
                 .IsRequired()
-                .HasDefaultValue(0) // UserRole.User
+                .HasDefaultValue(AIKnowledgeAssistant.Domain.Enums.UserRole.User) // Enum, not int
                 .HasComment("User's authorization level: 0=User, 1=Admin");
 
             entity.Property(e => e.CreatedAt)

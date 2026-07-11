@@ -1,3 +1,5 @@
+using AIKnowledgeAssistant.Application.Extensions;
+using AIKnowledgeAssistant.API.Middleware;
 using AIKnowledgeAssistant.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -12,6 +14,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Get connection string from appsettings.json
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+// Register Application layer services (Validators, mappings)
+builder.Services.AddApplication();
 
 // Register Infrastructure layer services (Database, Repositories, Authentication)
 builder.Services.AddInfrastructure(connectionString);
@@ -55,7 +60,6 @@ builder.Services
 
 // Add API services
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen();
 
 // ====================================
@@ -64,10 +68,17 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// ====================================
+// ERROR HANDLING MIDDLEWARE (FIRST!)
+// ====================================
+// Must be first to catch all exceptions
+// From all other middleware and endpoints
+
+app.UseErrorHandling();
+
 // Configure HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
     app.UseSwagger();
     app.UseSwaggerUI();
 }
@@ -75,11 +86,10 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 // ====================================
-// MIDDLEWARE ORDER IS IMPORTANT
+// AUTHENTICATION & AUTHORIZATION MIDDLEWARE
 // ====================================
-// 1. Authentication: Validates JWT tokens
-// 2. Authorization: Checks [Authorize] attributes
-// Order: Authentication BEFORE Authorization!
+// Order: Authentication validates JWT
+//        Authorization checks [Authorize] attributes
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -2,6 +2,7 @@ namespace AIKnowledgeAssistant.API.Controllers;
 
 using AIKnowledgeAssistant.Application.DTOs.Authentication;
 using AIKnowledgeAssistant.Application.Interfaces;
+using AIKnowledgeAssistant.Application.Validators;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -36,11 +37,27 @@ public class AuthController : ControllerBase
 {
     private readonly IAuthenticationService _authService;
     private readonly ILogger<AuthController> _logger;
+    
+    // Validators injected via DI
+    private readonly RegisterRequestValidator _registerValidator;
+    private readonly LoginRequestValidator _loginValidator;
+    private readonly RefreshTokenRequestValidator _refreshTokenValidator;
+    private readonly LogoutRequestValidator _logoutValidator;
 
-    public AuthController(IAuthenticationService authService, ILogger<AuthController> logger)
+    public AuthController(
+        IAuthenticationService authService,
+        ILogger<AuthController> logger,
+        RegisterRequestValidator registerValidator,
+        LoginRequestValidator loginValidator,
+        RefreshTokenRequestValidator refreshTokenValidator,
+        LogoutRequestValidator logoutValidator)
     {
         _authService = authService;
         _logger = logger;
+        _registerValidator = registerValidator;
+        _loginValidator = loginValidator;
+        _refreshTokenValidator = refreshTokenValidator;
+        _logoutValidator = logoutValidator;
     }
 
     /// <summary>
@@ -86,6 +103,14 @@ public class AuthController : ControllerBase
         {
             _logger.LogInformation("Registration attempt for email: {Email}", request.Email);
 
+            // Validate request using FluentValidation
+            var validationResult = await _registerValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+            {
+                _logger.LogWarning("Registration validation failed for email: {Email}", request.Email);
+                throw new FluentValidation.ValidationException(validationResult.Errors);
+            }
+
             var response = await _authService.RegisterAsync(request);
 
             _logger.LogInformation("User registered successfully: {UserId}", response.UserId);
@@ -94,7 +119,7 @@ public class AuthController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Registration failed for email: {Email}", request.Email);
+            _logger.LogError(ex, "Registration failed for email: {Email}", request?.Email);
             
             return BadRequest(new
             {
@@ -148,6 +173,14 @@ public class AuthController : ControllerBase
         {
             _logger.LogInformation("Login attempt for email: {Email}", request.Email);
 
+            // Validate request using FluentValidation
+            var validationResult = await _loginValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+            {
+                _logger.LogWarning("Login validation failed for email: {Email}", request.Email);
+                throw new FluentValidation.ValidationException(validationResult.Errors);
+            }
+
             var response = await _authService.LoginAsync(request);
 
             // Set refresh token as HttpOnly cookie
@@ -169,7 +202,7 @@ public class AuthController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Login failed for email: {Email}", request.Email);
+            _logger.LogError(ex, "Login failed for email: {Email}", request?.Email);
 
             return Unauthorized(new
             {
@@ -223,6 +256,14 @@ public class AuthController : ControllerBase
         try
         {
             _logger.LogInformation("Token refresh attempt");
+
+            // Validate request using FluentValidation
+            var validationResult = await _refreshTokenValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+            {
+                _logger.LogWarning("Token refresh validation failed");
+                throw new FluentValidation.ValidationException(validationResult.Errors);
+            }
 
             var response = await _authService.RefreshTokenAsync(request);
 
@@ -297,6 +338,14 @@ public class AuthController : ControllerBase
         try
         {
             _logger.LogInformation("Logout attempt");
+
+            // Validate request using FluentValidation
+            var validationResult = await _logoutValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+            {
+                _logger.LogWarning("Logout validation failed");
+                throw new FluentValidation.ValidationException(validationResult.Errors);
+            }
 
             await _authService.RevokeRefreshTokenAsync(request.RefreshToken, "User logout");
 

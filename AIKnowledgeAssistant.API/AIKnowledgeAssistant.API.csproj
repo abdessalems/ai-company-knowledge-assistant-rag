@@ -14,7 +14,8 @@
 
   <!-- API Core packages -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+    <!-- Swashbuckle.AspNetCore provides the Swagger/OpenAPI UI. We use it alone to
+         avoid a Microsoft.OpenApi version conflict with the native AddOpenApi(). -->
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.9" />
   </ItemGroup>
