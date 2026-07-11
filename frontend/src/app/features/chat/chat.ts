@@ -1,4 +1,5 @@
 import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChatService } from '../../core/services/chat.service';
 import { SourceDto } from '../../core/models';
@@ -10,35 +11,38 @@ interface ChatMessage {
   error?: boolean;
 }
 
-/**
- * RAG chat: type a question, the answer streams back grounded in the user's
- * documents, with citation chips (document + page).
- */
 @Component({
   selector: 'app-chat',
-  imports: [FormsModule],
+  imports: [FormsModule, DecimalPipe],
   template: `
     <div class="chat">
       <div class="messages" #scroll>
         @if (messages().length === 0) {
           <div class="welcome">
-            <div class="w-icon">💬</div>
+            <div class="w-icon">🧠</div>
             <h2>Ask your documents</h2>
-            <p class="muted">Answers come only from files you've uploaded, with citations.</p>
+            <p class="muted">Answers come only from files you've uploaded — always with citations.</p>
+            <div class="suggestions">
+              @for (s of suggestions; track s) {
+                <button class="suggestion" (click)="suggest(s)">{{ s }}</button>
+              }
+            </div>
           </div>
         }
 
         @for (m of messages(); track $index) {
-          <div class="msg" [class.user]="m.role === 'user'">
+          <div class="msg animate-in" [class.user]="m.role === 'user'">
             <div class="avatar" [class.assistant]="m.role === 'assistant'">
-              {{ m.role === 'user' ? 'You' : 'AI' }}
+              {{ m.role === 'user' ? '🙂' : '🧠' }}
             </div>
             <div class="bubble" [class.err]="m.error">
               <div class="text">{{ m.text }}</div>
               @if (m.sources && m.sources.length) {
                 <div class="chips">
                   @for (s of m.sources; track $index) {
-                    <span class="chip">📄 {{ s.document }} · p.{{ s.page }}</span>
+                    <span class="chip" [title]="'Relevance ' + (s.relevance * 100 | number:'1.0-0') + '%'">
+                      📄 {{ s.document }} · p.{{ s.page }}
+                    </span>
                   }
                 </div>
               }
@@ -48,59 +52,85 @@ interface ChatMessage {
 
         @if (loading()) {
           <div class="msg">
-            <div class="avatar assistant">AI</div>
-            <div class="bubble"><span class="dots">Thinking…</span></div>
+            <div class="avatar assistant">🧠</div>
+            <div class="bubble typing"><span></span><span></span><span></span></div>
           </div>
         }
       </div>
 
-      <div class="composer">
-        <textarea
-          class="input box"
-          [(ngModel)]="draft"
-          (keydown.enter)="onEnter($event)"
-          rows="1"
-          placeholder="Ask a question about your documents…"
-          [disabled]="loading()"></textarea>
-        <button class="btn send" (click)="send()" [disabled]="loading() || !draft.trim()">Send</button>
+      <div class="composer-wrap">
+        <div class="composer">
+          <textarea
+            class="box"
+            [(ngModel)]="draft"
+            (keydown.enter)="onEnter($event)"
+            rows="1"
+            placeholder="Ask a question about your documents…"
+            [disabled]="loading()"></textarea>
+          <button class="btn send" (click)="send()" [disabled]="loading() || !draft.trim()">➤</button>
+        </div>
+        <div class="hint muted">Enter to send · Shift+Enter for a new line</div>
       </div>
     </div>
   `,
   styles: [`
     .chat { display: flex; flex-direction: column; height: 100%; }
-    .messages { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
-    .welcome { margin: auto; text-align: center; color: var(--text-muted); }
-    .w-icon { font-size: 2.5rem; }
-    .welcome h2 { color: var(--text); margin: .5rem 0 .25rem; }
+    .messages { flex: 1; overflow-y: auto; padding: 2rem 1.5rem; display: flex; flex-direction: column; gap: 1.4rem; }
 
-    .msg { display: flex; gap: .75rem; max-width: 820px; width: 100%; margin: 0 auto; }
+    .welcome { margin: auto; text-align: center; color: var(--text-muted); max-width: 560px; }
+    .w-icon {
+      width: 64px; height: 64px; margin: 0 auto .8rem; display: grid; place-items: center; font-size: 1.8rem;
+      background: var(--accent-soft); border: 1px solid var(--border); border-radius: 18px;
+    }
+    .welcome h2 { color: var(--text); margin: .3rem 0 .35rem; font-size: 1.5rem; }
+    .suggestions { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-top: 1.6rem; }
+    .suggestion {
+      text-align: left; padding: .8rem .95rem; background: var(--surface); color: var(--text);
+      border: 1px solid var(--border); border-radius: var(--radius-sm); font: inherit; font-size: .88rem;
+      cursor: pointer; transition: border-color var(--t), background var(--t), transform var(--t);
+    }
+    .suggestion:hover { border-color: var(--accent); background: var(--surface-2); transform: translateY(-1px); }
+
+    .msg { display: flex; gap: .8rem; max-width: 820px; width: 100%; margin: 0 auto; }
     .msg.user { flex-direction: row-reverse; }
     .avatar {
-      width: 30px; height: 30px; border-radius: 7px; flex-shrink: 0;
-      background: var(--surface-2); color: var(--text-muted);
-      display: flex; align-items: center; justify-content: center; font-size: .7rem; font-weight: 700;
+      width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0; display: grid; place-items: center; font-size: 1rem;
+      background: var(--surface-2); border: 1px solid var(--border);
     }
-    .avatar.assistant { background: var(--accent); color: #fff; }
+    .avatar.assistant { background: var(--accent-soft); }
     .bubble {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: .75rem 1rem; max-width: 80%;
+      border-radius: 16px; padding: .85rem 1.1rem; max-width: 82%; box-shadow: var(--shadow-sm);
     }
-    .msg.user .bubble { background: var(--surface-2); }
+    .msg.user .bubble { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 30%, transparent); }
     .bubble.err { border-color: var(--danger); }
-    .text { white-space: pre-wrap; line-height: 1.5; }
-    .chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .6rem; }
+    .text { white-space: pre-wrap; line-height: 1.6; }
+    .chips { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .75rem; padding-top: .6rem; border-top: 1px solid var(--border); }
     .chip {
       font-size: .72rem; background: var(--chip); border: 1px solid var(--border);
-      color: var(--text-muted); padding: .2rem .5rem; border-radius: 20px;
+      color: var(--text-muted); padding: .25rem .6rem; border-radius: 20px; cursor: default;
     }
-    .dots { color: var(--text-muted); }
 
+    /* typing dots */
+    .typing { display: flex; gap: .3rem; align-items: center; }
+    .typing span { width: 7px; height: 7px; border-radius: 50%; background: var(--text-muted); animation: bounce 1.2s infinite; }
+    .typing span:nth-child(2) { animation-delay: .15s; }
+    .typing span:nth-child(3) { animation-delay: .3s; }
+    @keyframes bounce { 0%, 60%, 100% { transform: translateY(0); opacity: .4; } 30% { transform: translateY(-5px); opacity: 1; } }
+
+    .composer-wrap { padding: .5rem 1.5rem 1.1rem; max-width: 820px; width: 100%; margin: 0 auto; box-sizing: border-box; }
     .composer {
-      display: flex; gap: .6rem; padding: 1rem 1.5rem; border-top: 1px solid var(--border);
-      max-width: 820px; width: 100%; margin: 0 auto; box-sizing: border-box;
+      display: flex; gap: .5rem; align-items: flex-end; padding: .5rem .5rem .5rem .9rem;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); transition: border-color var(--t), box-shadow var(--t);
     }
-    .box { resize: none; max-height: 160px; }
-    .send { align-self: stretch; }
+    .composer:focus-within { border-color: var(--accent); box-shadow: var(--ring); }
+    .box {
+      flex: 1; resize: none; max-height: 170px; background: transparent; border: none; color: var(--text);
+      font: inherit; padding: .45rem 0; outline: none;
+    }
+    .box::placeholder { color: var(--text-faint); }
+    .send { padding: 0; width: 40px; height: 40px; flex-shrink: 0; font-size: 1rem; border-radius: 10px; }
+    .hint { text-align: center; font-size: .74rem; margin-top: .5rem; }
   `],
 })
 export class Chat {
@@ -111,9 +141,21 @@ export class Chat {
   loading = signal(false);
   draft = '';
 
+  suggestions = [
+    'How many vacation days do employees get?',
+    'What are the standard working hours?',
+    'What are the password requirements?',
+    'How many days per week can I work remotely?',
+  ];
+
+  suggest(question: string): void {
+    this.draft = question;
+    this.send();
+  }
+
   onEnter(event: Event): void {
     const ke = event as KeyboardEvent;
-    if (ke.shiftKey) return; // Shift+Enter = newline
+    if (ke.shiftKey) return;
     event.preventDefault();
     this.send();
   }
@@ -142,7 +184,6 @@ export class Chat {
   }
 
   private scrollToBottom(): void {
-    // Wait a tick so the new message is in the DOM before scrolling.
     setTimeout(() => {
       const el = this.scroll()?.nativeElement;
       if (el) el.scrollTop = el.scrollHeight;

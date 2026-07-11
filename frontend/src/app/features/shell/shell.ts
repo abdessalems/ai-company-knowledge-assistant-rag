@@ -2,24 +2,27 @@ import { Component, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
-/**
- * The authenticated layout: a left sidebar (nav + user) and a main area where
- * the child routes (Documents, Chat) render via <router-outlet />.
- */
 @Component({
   selector: 'app-shell',
   imports: [RouterOutlet, RouterLink, RouterLinkActive],
   template: `
     <div class="shell">
       <aside class="sidebar">
-        <div class="brand">🧠 Knowledge<span>Assistant</span></div>
+        <div class="brand">
+          <span class="logo">🧠</span>
+          <span class="brand-name">Knowledge<b>Assistant</b></span>
+        </div>
 
         <nav class="nav">
-          <a routerLink="/app/chat" routerLinkActive="active" class="nav-item">💬 Chat</a>
-          <a routerLink="/app/documents" routerLinkActive="active" class="nav-item">📄 Documents</a>
+          <a routerLink="/app/chat" routerLinkActive="active" class="nav-item">
+            <span class="ico">💬</span> Chat
+          </a>
+          <a routerLink="/app/documents" routerLinkActive="active" class="nav-item">
+            <span class="ico">📄</span> Documents
+          </a>
         </nav>
 
-        <div class="sidebar-foot">
+        <div class="foot">
           <div class="user">
             <div class="avatar">{{ initials() }}</div>
             <div class="user-info">
@@ -39,28 +42,41 @@ import { AuthService } from '../../core/services/auth.service';
   styles: [`
     .shell { display: flex; height: 100vh; }
     .sidebar {
-      width: 260px; flex-shrink: 0; background: var(--sidebar);
-      border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 1rem;
+      width: 268px; flex-shrink: 0; background: var(--sidebar);
+      border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 1.1rem;
     }
-    .brand { font-weight: 700; font-size: 1.05rem; margin: .25rem .25rem 1.5rem; }
-    .brand span { color: var(--text-muted); font-weight: 500; }
+    .brand { display: flex; align-items: center; gap: .55rem; padding: .3rem .4rem; margin-bottom: 1.6rem; }
+    .logo { width: 34px; height: 34px; display: grid; place-items: center; font-size: 1rem;
+      background: var(--accent-soft); border: 1px solid var(--border); border-radius: 10px; }
+    .brand-name { font-weight: 600; font-size: .98rem; }
+    .brand-name b { font-weight: 800; background: var(--accent-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
     .nav { display: flex; flex-direction: column; gap: .25rem; flex: 1; }
     .nav-item {
-      color: var(--text-muted); padding: .6rem .7rem; border-radius: var(--radius-sm);
-      font-weight: 500; transition: background .15s ease, color .15s ease;
+      position: relative; display: flex; align-items: center; gap: .65rem;
+      color: var(--text-muted); padding: .68rem .8rem; border-radius: var(--radius-sm);
+      font-weight: 500; transition: background var(--t), color var(--t);
     }
+    .nav-item .ico { font-size: 1rem; }
     .nav-item:hover { background: var(--surface-2); color: var(--text); }
-    .nav-item.active { background: var(--surface); color: var(--text); }
-    .sidebar-foot { border-top: 1px solid var(--border); padding-top: 1rem; }
-    .user { display: flex; align-items: center; gap: .6rem; margin-bottom: .75rem; }
+    .nav-item.active { background: var(--accent-soft); color: var(--text); }
+    .nav-item.active::before {
+      content: ''; position: absolute; left: -1.1rem; top: 50%; transform: translateY(-50%);
+      width: 3px; height: 20px; border-radius: 4px; background: var(--accent-grad);
+    }
+
+    .foot { border-top: 1px solid var(--border); padding-top: 1rem; }
+    .user { display: flex; align-items: center; gap: .65rem; margin-bottom: .8rem; padding: 0 .2rem; }
     .avatar {
-      width: 34px; height: 34px; border-radius: 50%; background: var(--accent);
-      color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .8rem;
+      width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+      background: var(--accent-grad); color: #fff; box-shadow: var(--shadow-glow);
+      display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .78rem;
     }
     .user-info { overflow: hidden; }
     .user-name { font-size: .85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .user-email { font-size: .72rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .logout { width: 100%; }
+
     .main { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
   `],
 })

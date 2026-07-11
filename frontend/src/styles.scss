@@ -1,101 +1,127 @@
 /* =====================================================================
-   GLOBAL THEME
+   DESIGN SYSTEM
    ---------------------------------------------------------------------
-   All colours live here as CSS variables. To re-skin the whole app
-   (e.g. from a template you like), just change these values — every
-   component reads from them, so nothing else needs to be touched.
+   Change the tokens in :root to re-skin the entire app. Everything else
+   (buttons, inputs, cards, colours) reads from these variables.
    ===================================================================== */
 
 :root {
-  /* Core palette (dark, chatbot-ui inspired) */
-  --bg:           #0f1117;   /* app background            */
-  --sidebar:      #171923;   /* left sidebar              */
-  --surface:      #1e2130;   /* cards, inputs, bubbles    */
-  --surface-2:    #262a3b;   /* hover / elevated          */
-  --border:       #2d3244;   /* hairlines                 */
+  color-scheme: dark;
 
-  --text:         #e8eaf0;   /* primary text              */
-  --text-muted:   #9aa0b4;   /* secondary text            */
+  /* --- Surfaces --- */
+  --bg:          #0a0b10;
+  --sidebar:     #0d0e14;
+  --surface:     #14161f;
+  --surface-2:   #1a1d28;
+  --surface-3:   #232735;
+  --border:      rgba(255, 255, 255, .08);
+  --border-strong: rgba(255, 255, 255, .15);
 
-  --accent:       #10a37f;   /* primary action (buttons)  */
-  --accent-hover: #0e8f6f;
+  /* Ambient glow behind the whole app */
+  --bg-glow:
+    radial-gradient(1100px 560px at 78% -12%, rgba(99, 102, 241, .13), transparent 60%),
+    radial-gradient(820px 480px at 8% 112%, rgba(139, 92, 246, .10), transparent 55%);
+
+  /* --- Text --- */
+  --text:        #e9ebf2;
+  --text-muted:  #8b90a4;
+  --text-faint:  #565b6d;
+
+  /* --- Accent --- */
+  --accent:       #6366f1;
+  --accent-2:     #8b5cf6;
+  --accent-grad:  linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --accent-soft:  rgba(99, 102, 241, .16);
   --accent-text:  #ffffff;
 
-  --danger:       #e5484d;   /* delete / errors           */
-  --chip:         #262a3b;   /* citation chips            */
+  --danger:  #f43f5e;
+  --success: #10b981;
+  --chip:    rgba(255, 255, 255, .05);
 
-  --radius:       10px;
-  --radius-sm:    7px;
+  /* --- Shape & motion --- */
+  --radius:    14px;
+  --radius-sm: 10px;
+  --radius-lg: 22px;
+  --ring: 0 0 0 3px var(--accent-soft);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .3);
+  --shadow:    0 10px 34px rgba(0, 0, 0, .38);
+  --shadow-glow: 0 6px 20px rgba(99, 102, 241, .40);
+  --t: .18s cubic-bezier(.4, 0, .2, 1);
+
   --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 * { box-sizing: border-box; }
-
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-}
+html, body { margin: 0; padding: 0; height: 100%; }
 
 body {
   background: var(--bg);
+  background-image: var(--bg-glow);
+  background-attachment: fixed;
   color: var(--text);
   font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.55;
+  letter-spacing: -.011em;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+h1, h2, h3 { letter-spacing: -.025em; }
 a { color: var(--accent); text-decoration: none; }
 
-/* ---- Reusable building blocks (used across components) ---- */
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: .5rem;
-  padding: .6rem 1rem;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: var(--accent);
-  color: var(--accent-text);
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background .15s ease;
+/* --- Custom scrollbars --- */
+* { scrollbar-width: thin; scrollbar-color: var(--surface-3) transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb {
+  background: var(--surface-3); border-radius: 20px;
+  border: 2px solid transparent; background-clip: padding-box;
 }
-.btn:hover:not(:disabled) { background: var(--accent-hover); }
-.btn:disabled { opacity: .55; cursor: not-allowed; }
+*::-webkit-scrollbar-thumb:hover { background: var(--border-strong); background-clip: padding-box; }
+
+/* --- Buttons --- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  padding: .62rem 1.1rem; border: none; border-radius: var(--radius-sm);
+  background: var(--accent-grad); color: var(--accent-text);
+  font: inherit; font-weight: 600; cursor: pointer;
+  box-shadow: var(--shadow-glow);
+  transition: transform var(--t), box-shadow var(--t), opacity var(--t);
+}
+.btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(99, 102, 241, .5); }
+.btn:active:not(:disabled) { transform: translateY(0); }
+.btn:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
 
 .btn-ghost {
-  background: transparent;
-  color: var(--text-muted);
-  border: 1px solid var(--border);
+  background: transparent; color: var(--text-muted);
+  border: 1px solid var(--border); box-shadow: none;
 }
-.btn-ghost:hover:not(:disabled) { background: var(--surface-2); color: var(--text); }
+.btn-ghost:hover:not(:disabled) {
+  background: var(--surface-2); color: var(--text); border-color: var(--border-strong); transform: none;
+}
+.btn-danger { background: var(--danger); box-shadow: 0 4px 14px rgba(244, 63, 94, .32); }
 
-.btn-danger { background: var(--danger); }
-.btn-danger:hover:not(:disabled) { filter: brightness(1.1); }
-
+/* --- Inputs --- */
 .input {
-  width: 100%;
-  padding: .65rem .8rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text);
-  font: inherit;
+  width: 100%; padding: .72rem .9rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text); font: inherit;
+  transition: border-color var(--t), box-shadow var(--t);
 }
-.input:focus { outline: none; border-color: var(--accent); }
+.input::placeholder { color: var(--text-faint); }
+.input:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
 
-.label { display: block; margin-bottom: .35rem; color: var(--text-muted); font-size: .85rem; }
-.field { margin-bottom: 1rem; }
+.label { display: block; margin-bottom: .4rem; color: var(--text-muted); font-size: .82rem; font-weight: 500; }
+.field { margin-bottom: 1.1rem; }
 
 .card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.25rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow-sm);
 }
 
 .error-text { color: var(--danger); font-size: .85rem; margin-top: .4rem; }
 .muted { color: var(--text-muted); }
+
+/* --- Motion --- */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.animate-in { animation: fadeUp .34s cubic-bezier(.4, 0, .2, 1) both; }
