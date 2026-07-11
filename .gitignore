@@ -480,3 +480,7 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Uploaded documents (local file storage) - never commit user files
+uploads/
+**/uploads/

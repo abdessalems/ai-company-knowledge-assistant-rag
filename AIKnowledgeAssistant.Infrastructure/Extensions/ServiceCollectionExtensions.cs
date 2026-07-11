@@ -4,6 +4,7 @@ using AIKnowledgeAssistant.Application.Interfaces;
 using AIKnowledgeAssistant.Infrastructure.Authentication;
 using AIKnowledgeAssistant.Infrastructure.Database;
 using AIKnowledgeAssistant.Infrastructure.Repositories;
+using AIKnowledgeAssistant.Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -58,7 +59,8 @@ public static class InfrastructureExtensions
     /// </summary>
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
-        string connectionString)
+        string connectionString,
+        string fileStorageBasePath)
     {
         // ====================================
         // DATABASE CONTEXT
@@ -167,6 +169,15 @@ public static class InfrastructureExtensions
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<IAuthenticationService, AuthenticationService>();
+
+        // ====================================
+        // FILE STORAGE
+        // ====================================
+        // Singleton: the service is stateless and thread-safe (just reads/writes
+        // files under a fixed base path), so one shared instance is ideal.
+        // Swapping to Azure Blob / S3 later = change this ONE line.
+        services.AddSingleton<IFileStorageService>(
+            new LocalFileStorageService(fileStorageBasePath));
 
         return services;
     }

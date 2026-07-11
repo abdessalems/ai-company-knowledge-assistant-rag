@@ -4,6 +4,8 @@ using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using AIKnowledgeAssistant.Application.Validators;
 using AIKnowledgeAssistant.Application.DTOs.Authentication;
+using AIKnowledgeAssistant.Application.Interfaces;
+using AIKnowledgeAssistant.Application.Services;
 
 /// <summary>
 /// Extension method for registering Application layer services.
@@ -48,6 +50,13 @@ public static class ApplicationExtensions
         /// Add new validators, they're auto-registered
         /// No manual registration needed
         services.AddValidatorsFromAssembly(typeof(RegisterRequestValidator).Assembly, ServiceLifetime.Transient);
+
+        // ====================================
+        // APPLICATION SERVICES
+        // ====================================
+        // Scoped: one instance per HTTP request, sharing that request's
+        // UnitOfWork/DbContext so all its DB work is one transaction.
+        services.AddScoped<IDocumentService, DocumentService>();
 
         return services;
     }

@@ -15,11 +15,17 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-// Register Application layer services (Validators, mappings)
+// Where uploaded files are stored on disk. Read from configuration, and fall
+// back to an "uploads" folder next to the app if not configured.
+var fileStorageBasePath = builder.Configuration["FileStorage:BasePath"];
+if (string.IsNullOrWhiteSpace(fileStorageBasePath))
+    fileStorageBasePath = Path.Combine(builder.Environment.ContentRootPath, "uploads");
+
+// Register Application layer services (Validators, services)
 builder.Services.AddApplication();
 
-// Register Infrastructure layer services (Database, Repositories, Authentication)
-builder.Services.AddInfrastructure(connectionString);
+// Register Infrastructure layer services (Database, Repositories, Authentication, Storage)
+builder.Services.AddInfrastructure(connectionString, fileStorageBasePath);
 
 // ====================================
 // JWT AUTHENTICATION
