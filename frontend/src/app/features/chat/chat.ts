@@ -16,6 +16,11 @@ interface ChatMessage {
   imports: [FormsModule, DecimalPipe],
   template: `
     <div class="chat">
+      @if (messages().length) {
+        <div class="chat-top">
+          <button class="btn-ghost new-btn" (click)="newChat()">＋ New chat</button>
+        </div>
+      }
       <div class="messages" #scroll>
         @if (messages().length === 0) {
           <div class="welcome">
@@ -61,9 +66,11 @@ interface ChatMessage {
       <div class="composer-wrap">
         <div class="composer">
           <textarea
+            #composerInput
             class="box"
             [(ngModel)]="draft"
             (keydown.enter)="onEnter($event)"
+            (input)="autoGrow()"
             rows="1"
             placeholder="Ask a question about your documents…"
             [disabled]="loading()"></textarea>
@@ -74,8 +81,11 @@ interface ChatMessage {
     </div>
   `,
   styles: [`
-    .chat { display: flex; flex-direction: column; height: 100%; }
-    .messages { flex: 1; overflow-y: auto; padding: 2rem 1.5rem; display: flex; flex-direction: column; gap: 1.4rem; }
+    :host { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+    .chat { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+    .chat-top { display: flex; justify-content: flex-end; padding: .7rem 1.1rem; border-bottom: 1px solid var(--border); }
+    .new-btn { font-size: .82rem; padding: .4rem .8rem; }
+    .messages { flex: 1; min-height: 0; overflow-y: auto; padding: 2rem 1.5rem; display: flex; flex-direction: column; gap: 1.4rem; }
 
     .welcome { margin: auto; text-align: center; color: var(--text-muted); max-width: 560px; }
     .w-icon {
@@ -136,6 +146,7 @@ interface ChatMessage {
 export class Chat {
   private chatService = inject(ChatService);
   private scroll = viewChild<ElementRef<HTMLDivElement>>('scroll');
+  private composerInput = viewChild<ElementRef<HTMLTextAreaElement>>('composerInput');
 
   messages = signal<ChatMessage[]>([]);
   loading = signal(false);
@@ -153,6 +164,26 @@ export class Chat {
     this.send();
   }
 
+  /** Grow the textarea with its content, up to the CSS max-height. */
+  autoGrow(): void {
+    const ta = this.composerInput()?.nativeElement;
+    if (!ta) return;
+    ta.style.height = 'auto';
+    ta.style.height = Math.min(ta.scrollHeight, 170) + 'px';
+  }
+
+  /** Start a fresh conversation. */
+  newChat(): void {
+    this.messages.set([]);
+    this.draft = '';
+    this.resetComposerHeight();
+  }
+
+  private resetComposerHeight(): void {
+    const ta = this.composerInput()?.nativeElement;
+    if (ta) ta.style.height = 'auto';
+  }
+
   onEnter(event: Event): void {
     const ke = event as KeyboardEvent;
     if (ke.shiftKey) return;
@@ -166,6 +197,7 @@ export class Chat {
 
     this.messages.update((m) => [...m, { role: 'user', text: question }]);
     this.draft = '';
+    this.resetComposerHeight();
     this.loading.set(true);
     this.scrollToBottom();
 

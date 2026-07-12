@@ -54,6 +54,7 @@ import { DocumentDto } from '../../core/models';
     </div>
   `,
   styles: [`
+    :host { flex: 1; min-height: 0; display: block; }
     .page { padding: 2.2rem 2.4rem; overflow-y: auto; height: 100%; max-width: 900px; }
     .head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1.8rem; }
     h1 { margin: 0 0 .3rem; font-size: 1.55rem; }
