@@ -1,8 +1,26 @@
 # 🧠 AI Knowledge Assistant — Private RAG Document Chat
 
+![.NET](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white)
+![C#](https://img.shields.io/badge/C%23-239120?logo=csharp&logoColor=white)
+![Angular](https://img.shields.io/badge/Angular-20-DD0031?logo=angular&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+![Ollama](https://img.shields.io/badge/AI-Ollama%20(local)-000000?logo=ollama&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green)
+
 A **fully local, on-premise** AI assistant that lets a company's employees chat with their internal documents. Upload PDFs or text files, ask questions in natural language, and get answers grounded **only** in your own documents — each with a **citation (document + page)**. If the answer isn't in the documents, it honestly says *"I don't know."*
 
 > **No document ever leaves your infrastructure.** The AI models run locally (Ollama), the database is local (PostgreSQL). No cloud AI, no API keys, no per-token fees — GDPR-friendly by design and even air-gappable.
+
+---
+
+## 📸 Screenshots
+
+<!-- Add your screenshots to a docs/screenshots/ folder and reference them here.
+     Recruiters look at visuals first — a chat screenshot with citation chips is ideal. -->
+
+| Chat with citations | Documents |
+|---------------------|-----------|
+| _add `docs/screenshots/chat.png`_ | _add `docs/screenshots/documents.png`_ |
 
 ---
 
