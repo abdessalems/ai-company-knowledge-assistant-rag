@@ -1,6 +1,5 @@
 namespace AIKnowledgeAssistant.API.Controllers;
 
-using System.Security.Claims;
 using AIKnowledgeAssistant.Application.DTOs.Documents;
 using AIKnowledgeAssistant.Application.Interfaces;
 using AIKnowledgeAssistant.Domain.Exceptions;
@@ -27,7 +26,7 @@ using Microsoft.AspNetCore.Mvc;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class DocumentsController : ControllerBase
+public class DocumentsController : ApiControllerBase
 {
     private readonly IDocumentService _documentService;
     private readonly ILogger<DocumentsController> _logger;
@@ -106,17 +105,5 @@ public class DocumentsController : ControllerBase
 
         // 204 No Content: success, nothing to return.
         return NoContent();
-    }
-
-    /// <summary>
-    /// Read the authenticated user's id from the JWT's NameIdentifier claim.
-    /// The JwtTokenGenerator put it there at login time.
-    /// </summary>
-    private Guid GetUserId()
-    {
-        var value = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!Guid.TryParse(value, out var userId))
-            throw new AuthenticationFailedException("Invalid or missing user identity in token.");
-        return userId;
     }
 }

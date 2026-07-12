@@ -155,19 +155,8 @@ public static class InfrastructureExtensions
         /// - JwtSettings: Singleton (immutable configuration)
         /// - Services: Scoped (use DbContext per request)
         
-        // Load JWT settings from configuration
-        // Would normally come from appsettings.json
-        // For now: Hardcoded, will be replaced with config
-        var jwtSettings = new JwtSettings
-        {
-            SecretKey = "your-super-secret-key-must-be-at-least-32-characters-long",
-            Issuer = "https://ai-knowledge-assistant.company.com",
-            Audience = "ai-knowledge-assistant-api",
-            AccessTokenExpirationMinutes = 15,
-            RefreshTokenExpirationDays = 7
-        };
-
-        services.AddSingleton(jwtSettings);
+        // JwtSettings is registered by the API layer (Program.cs) from the
+        // "Jwt" configuration section — no hardcoded secret here.
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<IAuthenticationService, AuthenticationService>();

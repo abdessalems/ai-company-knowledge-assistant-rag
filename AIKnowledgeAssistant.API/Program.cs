@@ -36,13 +36,16 @@ builder.Services.AddInfrastructure(connectionString, fileStorageBasePath);
 // JWT AUTHENTICATION
 // ====================================
 
-// JWT Configuration
-// This should come from IConfiguration, but for now hardcoded
-var secretKey = "your-super-secret-key-must-be-at-least-32-characters-long";
-var issuer = "https://ai-knowledge-assistant.company.com";
-var audience = "ai-knowledge-assistant-api";
+// Settings come from the "Jwt" configuration section (appsettings.json, or
+// environment variables / user-secrets in production) — never hardcoded.
+var jwtSettings = new AIKnowledgeAssistant.Infrastructure.Authentication.JwtSettings();
+builder.Configuration.GetSection("Jwt").Bind(jwtSettings);
+jwtSettings.Validate();
+builder.Services.AddSingleton(jwtSettings);
 
-var key = Encoding.ASCII.GetBytes(secretKey);
+// UTF8 to match the token generator (JwtTokenGenerator) so both sides derive
+// the exact same signing-key bytes.
+var key = Encoding.UTF8.GetBytes(jwtSettings.SecretKey);
 
 builder.Services
     .AddAuthentication(options =>
@@ -57,9 +60,9 @@ builder.Services
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(key),
             ValidateIssuer = true,
-            ValidIssuer = issuer,
+            ValidIssuer = jwtSettings.Issuer,
             ValidateAudience = true,
-            ValidAudience = audience,
+            ValidAudience = jwtSettings.Audience,
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero
         };

@@ -1,10 +1,8 @@
 namespace AIKnowledgeAssistant.API.Controllers;
 
-using System.Security.Claims;
 using AIKnowledgeAssistant.Application.DTOs.Chat;
 using AIKnowledgeAssistant.Application.Interfaces;
 using AIKnowledgeAssistant.Application.Validators;
-using AIKnowledgeAssistant.Domain.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,7 +17,7 @@ using Microsoft.AspNetCore.Mvc;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class ChatController : ControllerBase
+public class ChatController : ApiControllerBase
 {
     private readonly IChatService _chatService;
     private readonly AskRequestValidator _validator;
@@ -48,14 +46,5 @@ public class ChatController : ControllerBase
 
         var response = await _chatService.AskAsync(userId, request.Question, cancellationToken);
         return Ok(response);
-    }
-
-    /// <summary>Read the authenticated user's id from the JWT NameIdentifier claim.</summary>
-    private Guid GetUserId()
-    {
-        var value = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!Guid.TryParse(value, out var userId))
-            throw new AuthenticationFailedException("Invalid or missing user identity in token.");
-        return userId;
     }
 }
